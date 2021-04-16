@@ -1,5 +1,6 @@
 package me.iblur.shuttle.socks;
 
+import io.netty.util.AttributeKey;
 import me.iblur.shuttle.conf.Configuration;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -13,7 +14,7 @@ import io.netty.handler.logging.LoggingHandler;
  */
 public class SocksProxyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    private Configuration configuration;
+    private final Configuration configuration;
 
     public SocksProxyChannelInitializer(Configuration configuration) {
         this.configuration = configuration;
@@ -27,5 +28,6 @@ public class SocksProxyChannelInitializer extends ChannelInitializer<SocketChann
         }
         pipeline.addLast(new SocksPortUnificationServerHandler());
         pipeline.addLast(new SocksProxyRequestHandler());
+        ch.attr(AttributeKey.valueOf("configuration")).set(configuration);
     }
 }

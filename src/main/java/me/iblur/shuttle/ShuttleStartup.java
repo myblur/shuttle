@@ -13,6 +13,7 @@ public class ShuttleStartup {
         configuration.setHost(args[0]);
         configuration.setPort(Integer.parseInt(args[1]));
         configuration.setDebug(Boolean.parseBoolean(args[2]));
+        configuration.setDnsServer(args[3]);
         SocksProxyServer socksProxyServer = new SocksProxyServer(configuration);
         socksProxyServer.start();
     }

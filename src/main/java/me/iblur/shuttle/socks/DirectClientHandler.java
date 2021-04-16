@@ -18,6 +18,7 @@ public class DirectClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.pipeline().remove(this);
         promise.setSuccess(ctx.channel());
     }
 

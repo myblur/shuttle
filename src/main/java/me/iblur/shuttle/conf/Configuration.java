@@ -8,10 +8,14 @@ public class Configuration {
     public static final String HOST = "host";
     public static final String PORT = "port";
     public static final String DEBUG = "debug";
+    public static final String DNS_SEVER = "dnsServer";
+    public static final int DNS_PORT = 53;
 
     private String host;
 
     private int port;
+
+    private String dnsServer;
 
     private boolean debug;
 
@@ -29,6 +33,14 @@ public class Configuration {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public String getDnsServer() {
+        return dnsServer;
+    }
+
+    public void setDnsServer(final String dnsServer) {
+        this.dnsServer = dnsServer;
     }
 
     public boolean isDebug() {
