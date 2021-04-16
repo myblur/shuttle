@@ -27,7 +27,7 @@ public class SocksProxyChannelInitializer extends ChannelInitializer<SocketChann
             pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
         }
         pipeline.addLast(new SocksPortUnificationServerHandler());
-        pipeline.addLast(new SocksProxyRequestHandler());
+        pipeline.addLast(SocksProxyRequestHandler.INSTANCE);
         ch.attr(AttributeKey.valueOf("configuration")).set(configuration);
     }
 }

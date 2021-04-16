@@ -1,15 +1,12 @@
 package me.iblur.shuttle.socks;
 
-import me.iblur.shuttle.conf.Configuration;
-import me.iblur.shuttle.thread.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import me.iblur.shuttle.conf.Configuration;
+import me.iblur.shuttle.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +39,8 @@ public class SocksProxyServer {
                 .option(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
+                //.childOption(ChannelOption.SO_RCVBUF, 1024 * 1024)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childHandler(new SocksProxyChannelInitializer(configuration));
     }
 

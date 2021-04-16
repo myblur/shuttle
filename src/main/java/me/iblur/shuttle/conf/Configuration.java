@@ -11,9 +11,13 @@ public class Configuration {
     public static final String DNS_SEVER = "dnsServer";
     public static final int DNS_PORT = 53;
 
+    private static final int DEFAULT_CONNECT_TIMEOUT = 5000;
+
     private String host;
 
     private int port;
+
+    private int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
     private String dnsServer;
 
@@ -33,6 +37,14 @@ public class Configuration {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public int getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(final int connectTimeout) {
+        this.connectTimeout = connectTimeout;
     }
 
     public String getDnsServer() {
