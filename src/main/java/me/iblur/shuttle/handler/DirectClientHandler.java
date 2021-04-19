@@ -1,4 +1,4 @@
-package me.iblur.shuttle.socks;
+package me.iblur.shuttle.handler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

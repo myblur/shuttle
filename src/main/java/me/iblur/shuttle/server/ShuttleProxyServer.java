@@ -1,4 +1,4 @@
-package me.iblur.shuttle.socks;
+package me.iblur.shuttle.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import me.iblur.shuttle.conf.Configuration;
+import me.iblur.shuttle.handler.socks.SocksProxyChannelInitializer;
 import me.iblur.shuttle.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +14,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @since 2021-04-15 14:49
  */
-public class SocksProxyServer {
+public class ShuttleProxyServer {
 
-    private final Logger log = LoggerFactory.getLogger(SocksProxyServer.class);
+    private final Logger log = LoggerFactory.getLogger(ShuttleProxyServer.class);
 
     private final ServerBootstrap serverBootstrap;
 
@@ -24,8 +25,7 @@ public class SocksProxyServer {
 
     private final Configuration configuration;
 
-
-    public SocksProxyServer(Configuration configuration) {
+    public ShuttleProxyServer(Configuration configuration) {
         this.serverBootstrap = new ServerBootstrap();
         this.configuration = configuration;
         this.bossGroup = new NioEventLoopGroup(1, new NamedThreadFactory(
@@ -35,12 +35,10 @@ public class SocksProxyServer {
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 256)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 //.childOption(ChannelOption.SO_RCVBUF, 1024 * 1024)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childHandler(new SocksProxyChannelInitializer(configuration));
     }
 

@@ -1,7 +1,6 @@
-package me.iblur.shuttle.socks;
+package me.iblur.shuttle.handler.socks;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -18,6 +17,8 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import me.iblur.shuttle.conf.Configuration;
+import me.iblur.shuttle.handler.DirectClientHandler;
+import me.iblur.shuttle.handler.RelayHandler;
 
 import java.net.InetSocketAddress;
 
@@ -62,15 +63,13 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksMessag
                 inboundChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
         };
+
         Configuration configuration = inboundChannel.attr(AttributeKey.<Configuration>valueOf("configuration")).get();
         bootstrap.group(inboundChannel.eventLoop())
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
-                //.option(ChannelOption.SO_RCVBUF, 1024 * 1024)
-                //.option(ChannelOption.SO_SNDBUF, 1024 * 1024)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.getConnectTimeout())
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .handler(new DirectClientHandler(promise));
         if (null != configuration.getDnsServer() && configuration.getDnsServer().length() > 0) {
             DnsNameResolverBuilder dnsResolverBuilder = new DnsNameResolverBuilder(inboundChannel.eventLoop());

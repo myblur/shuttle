@@ -1,4 +1,4 @@
-package me.iblur.shuttle.socks;
+package me.iblur.shuttle.handler.socks;
 
 import io.netty.util.AttributeKey;
 import me.iblur.shuttle.conf.Configuration;
