@@ -32,7 +32,7 @@ public class SocksProxyRequestHandler extends SimpleChannelInboundHandler<SocksM
             } else if (message instanceof Socks5CommandRequest) {
                 Socks5CommandRequest socks5CommandRequest = (Socks5CommandRequest) message;
                 if (socks5CommandRequest.type() == Socks5CommandType.CONNECT) {
-                    ctx.pipeline().addLast(new SocksConnectHandler());
+                    ctx.pipeline().addLast(new SocksProxyConnectHandler());
                     ctx.pipeline().remove(this);
                     ctx.fireChannelRead(message);
                 } else {

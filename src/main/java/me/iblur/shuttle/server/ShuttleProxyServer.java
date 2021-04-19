@@ -1,12 +1,14 @@
 package me.iblur.shuttle.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import me.iblur.shuttle.conf.Configuration;
-import me.iblur.shuttle.handler.socks.SocksProxyChannelInitializer;
+import me.iblur.shuttle.handler.ProxyChannelInitializer;
 import me.iblur.shuttle.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,7 @@ public class ShuttleProxyServer {
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 //.childOption(ChannelOption.SO_RCVBUF, 1024 * 1024)
-                .childHandler(new SocksProxyChannelInitializer(configuration));
+                .childHandler(new ProxyChannelInitializer(configuration));
     }
 
     public void start() throws InterruptedException {

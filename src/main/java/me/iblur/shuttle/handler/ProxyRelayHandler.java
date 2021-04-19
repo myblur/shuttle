@@ -12,14 +12,13 @@ import org.slf4j.LoggerFactory;
 /**
  * @since 2021-04-15 17:21
  */
-public class RelayHandler extends ChannelInboundHandlerAdapter {
+public class ProxyRelayHandler extends ChannelInboundHandlerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(RelayHandler.class);
+    private final Logger log = LoggerFactory.getLogger(ProxyRelayHandler.class);
 
     private final Channel relayChannel;
 
-
-    public RelayHandler(Channel relayChannel) {
+    public ProxyRelayHandler(Channel relayChannel) {
         this.relayChannel = relayChannel;
     }
 
@@ -47,7 +46,7 @@ public class RelayHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+        log.error("", cause);
         ctx.close();
     }
 }

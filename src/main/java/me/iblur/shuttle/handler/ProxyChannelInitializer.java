@@ -1,22 +1,21 @@
-package me.iblur.shuttle.handler.socks;
+package me.iblur.shuttle.handler;
 
-import io.netty.util.AttributeKey;
-import me.iblur.shuttle.conf.Configuration;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.socksx.SocksPortUnificationServerHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.AttributeKey;
+import me.iblur.shuttle.conf.Configuration;
 
 /**
  * @since 2021-04-15 15:01
  */
-public class SocksProxyChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class ProxyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Configuration configuration;
 
-    public SocksProxyChannelInitializer(Configuration configuration) {
+    public ProxyChannelInitializer(Configuration configuration) {
         this.configuration = configuration;
     }
 
@@ -26,8 +25,7 @@ public class SocksProxyChannelInitializer extends ChannelInitializer<SocketChann
         if (configuration.isDebug()) {
             pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
         }
-        pipeline.addLast(new SocksPortUnificationServerHandler());
-        pipeline.addLast(SocksProxyRequestHandler.INSTANCE);
+        pipeline.addLast(new ProxySelectorHandler());
         ch.attr(AttributeKey.valueOf("configuration")).set(configuration);
     }
 }
