@@ -9,8 +9,6 @@ import io.netty.util.concurrent.Promise;
 import me.iblur.shuttle.handler.ProxyConnectHandler;
 import me.iblur.shuttle.handler.ProxyRelayHandler;
 
-import java.net.InetSocketAddress;
-
 @ChannelHandler.Sharable
 public class HttpProxyConnectHandler extends ProxyConnectHandler<HttpObject> {
 
@@ -22,11 +20,10 @@ public class HttpProxyConnectHandler extends ProxyConnectHandler<HttpObject> {
         if (msg instanceof HttpRequest) {
             final HttpRequest httpRequest = (HttpRequest) msg;
             String remoteAddress = httpRequest.headers().get(HttpHeaderNames.HOST);
-            if (null == remoteAddress) {
+            if (null == remoteAddress || !remoteAddress.contains(":")) {
                 remoteAddress = httpRequest.uri();
             }
             String[] hostAndPort = remoteAddress.split(":");
-            InetSocketAddress socketAddress = new InetSocketAddress(hostAndPort[0], Integer.parseInt(hostAndPort[1]));
             Promise<Channel> promise = ctx.executor().newPromise();
             Channel inboundChannel = ctx.channel();
             if (httpRequest.method() == HttpMethod.CONNECT) {
@@ -83,7 +80,9 @@ public class HttpProxyConnectHandler extends ProxyConnectHandler<HttpObject> {
                             .addListener(ChannelFutureListener.CLOSE);
                 }
             };
-            connectRemoteAddress(inboundChannel, socketAddress, connectListener, promise);
+            String remoteHost = hostAndPort[0];
+            int remotePort = Integer.parseInt(hostAndPort[1]);
+            connectRemoteAddress(inboundChannel, remoteHost, remotePort, connectListener, promise);
         }
     }
 }

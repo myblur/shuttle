@@ -20,7 +20,7 @@ public abstract class ProxyConnectHandler<I> extends SimpleChannelInboundHandler
 
     private final Bootstrap bootstrap = new Bootstrap();
 
-    protected void connectRemoteAddress(Channel inboundChannel, InetSocketAddress remoteAddress,
+    protected void connectRemoteAddress(Channel inboundChannel, String remoteHost, int remotePort,
             ChannelFutureListener listener, Promise<Channel> promise) {
         Configuration configuration = inboundChannel.<Configuration>attr(AttributeKey.valueOf("configuration")).get();
         bootstrap.group(inboundChannel.eventLoop())
@@ -36,7 +36,7 @@ public abstract class ProxyConnectHandler<I> extends SimpleChannelInboundHandler
                             new InetSocketAddress(configuration.getDnsServer(), Configuration.DNS_PORT)));
             bootstrap.resolver(new DnsAddressResolverGroup(dnsResolverBuilder));
         }
-        bootstrap.connect(remoteAddress).addListener(listener);
+        bootstrap.connect(remoteHost, remotePort).addListener(listener);
     }
 
 }

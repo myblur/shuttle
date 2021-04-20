@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.socksx.SocksMessage;
 import io.netty.handler.codec.socksx.v5.DefaultSocks5CommandResponse;
+import io.netty.handler.codec.socksx.v5.Socks5AddressType;
 import io.netty.handler.codec.socksx.v5.Socks5CommandRequest;
 import io.netty.handler.codec.socksx.v5.Socks5CommandStatus;
 import io.netty.util.concurrent.Future;
@@ -15,6 +16,8 @@ import io.netty.util.concurrent.Promise;
 import me.iblur.shuttle.handler.ProxyConnectHandler;
 import me.iblur.shuttle.handler.ProxyRelayHandler;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**
@@ -33,16 +36,21 @@ public class SocksProxyConnectHandler extends ProxyConnectHandler<SocksMessage> 
         promise.addListener((GenericFutureListener<Future<Channel>>) f1 -> {
             if (f1.isSuccess()) {
                 final Channel outboundChannel = f1.getNow();
-                ctx.writeAndFlush(new DefaultSocks5CommandResponse(Socks5CommandStatus.SUCCESS,
-                        socks5CommandRequest.dstAddrType())).addListener((ChannelFutureListener) f2 -> {
-                    if (f2.isSuccess()) {
-                        outboundChannel.pipeline().addLast(new ProxyRelayHandler(inboundChannel));
-                        ctx.pipeline().remove(SocksProxyConnectHandler.this);
-                        ctx.pipeline().addLast(new ProxyRelayHandler(outboundChannel));
-                    } else {
-                        ctx.close();
-                    }
-                });
+                InetAddress remoteAddress = ((InetSocketAddress) outboundChannel.remoteAddress()).getAddress();
+                Socks5AddressType bndAddrType = remoteAddress instanceof Inet4Address ? Socks5AddressType.IPv4 :
+                        Socks5AddressType.IPv6;
+                String bndAddr = remoteAddress.getHostAddress();
+                ctx.writeAndFlush(
+                        new DefaultSocks5CommandResponse(Socks5CommandStatus.SUCCESS, bndAddrType, bndAddr, port))
+                        .addListener((ChannelFutureListener) f2 -> {
+                            if (f2.isSuccess()) {
+                                outboundChannel.pipeline().addLast(new ProxyRelayHandler(inboundChannel));
+                                ctx.pipeline().remove(SocksProxyConnectHandler.this);
+                                ctx.pipeline().addLast(new ProxyRelayHandler(outboundChannel));
+                            } else {
+                                ctx.close();
+                            }
+                        });
             } else {
                 inboundChannel.writeAndFlush(new DefaultSocks5CommandResponse(
                         Socks5CommandStatus.FAILURE, socks5CommandRequest.dstAddrType()));
@@ -56,7 +64,7 @@ public class SocksProxyConnectHandler extends ProxyConnectHandler<SocksMessage> 
                 inboundChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
         };
-        connectRemoteAddress(inboundChannel, new InetSocketAddress(host, port), connectListener, promise);
+        connectRemoteAddress(inboundChannel, host, port, connectListener, promise);
     }
 
     @Override
