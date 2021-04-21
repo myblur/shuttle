@@ -29,11 +29,11 @@ public abstract class ProxyConnectHandler<I> extends SimpleChannelInboundHandler
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.getConnectTimeout())
                 .handler(new DirectClientHandler(promise));
-        if (null != configuration.getDnsServer() && configuration.getDnsServer().length() > 0) {
+        if (null != configuration.getDns() && configuration.getDns().length() > 0) {
             DnsNameResolverBuilder dnsResolverBuilder = new DnsNameResolverBuilder(inboundChannel.eventLoop());
             dnsResolverBuilder.channelType(NioDatagramChannel.class)
                     .nameServerProvider(new SingletonDnsServerAddressStreamProvider(
-                            new InetSocketAddress(configuration.getDnsServer(), Configuration.DNS_PORT)));
+                            new InetSocketAddress(configuration.getDns(), Configuration.DNS_PORT)));
             bootstrap.resolver(new DnsAddressResolverGroup(dnsResolverBuilder));
         }
         bootstrap.connect(remoteHost, remotePort).addListener(listener);
