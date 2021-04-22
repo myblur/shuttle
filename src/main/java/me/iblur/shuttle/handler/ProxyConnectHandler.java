@@ -31,7 +31,7 @@ public abstract class ProxyConnectHandler<I> extends SimpleChannelInboundHandler
                 .handler(new DirectClientHandler(promise));
         if (null != configuration.getDns() && configuration.getDns().length() > 0) {
             DnsNameResolverBuilder dnsResolverBuilder = new DnsNameResolverBuilder(inboundChannel.eventLoop());
-            dnsResolverBuilder.channelType(NioDatagramChannel.class)
+            dnsResolverBuilder.channelType(NioDatagramChannel.class).eventLoop(inboundChannel.eventLoop())
                     .nameServerProvider(new SingletonDnsServerAddressStreamProvider(
                             new InetSocketAddress(configuration.getDns(), Configuration.DNS_PORT)));
             bootstrap.resolver(new DnsAddressResolverGroup(dnsResolverBuilder));
