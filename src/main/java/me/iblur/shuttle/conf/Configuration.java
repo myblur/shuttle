@@ -10,8 +10,11 @@ import picocli.CommandLine;
         sortOptions = false)
 public class Configuration {
 
-    public static final String DEFAULT_HOST = "0.0.0.0";
-    public static final int DEFAULT_PORT = 1080;
+    private static final String DEFAULT_HOST = "0.0.0.0";
+    private static final int DEFAULT_PORT = 1080;
+
+    private static final int DEFAULT_BACK_LOG = 256;
+
     public static final int DNS_PORT = 53;
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000;
 
@@ -25,6 +28,9 @@ public class Configuration {
     @CommandLine.Option(names = {"-ct", "--connect-timeout"}, description = "The proxy server connects to the remote " +
             "server timeout time, ms", defaultValue = DEFAULT_CONNECT_TIMEOUT + "")
     private int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+
+    @CommandLine.Option(names = {"--backlog"}, description = "Proxy server backlog", defaultValue = DEFAULT_BACK_LOG + "")
+    private int backlog = DEFAULT_BACK_LOG;
 
     @CommandLine.Option(names = {"-d", "--dns"}, description = "The DNS used by the proxy service to connect to the " +
             "remote server client")
@@ -58,6 +64,14 @@ public class Configuration {
 
     public void setConnectTimeout(final int connectTimeout) {
         this.connectTimeout = connectTimeout;
+    }
+
+    public int getBacklog() {
+        return backlog;
+    }
+
+    public void setBacklog(final int backlog) {
+        this.backlog = backlog;
     }
 
     public String getDns() {

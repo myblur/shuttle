@@ -6,12 +6,18 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.resolver.dns.DnsAddressResolverGroup;
+import io.netty.resolver.dns.SingletonDnsServerAddressStreamProvider;
+import me.iblur.shuttle.conf.AttributeKeys;
 import me.iblur.shuttle.conf.Configuration;
 import me.iblur.shuttle.handler.ProxyChannelInitializer;
 import me.iblur.shuttle.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
 
 /**
  * @since 2021-04-15 14:49
@@ -34,14 +40,30 @@ public class ShuttleProxyServer {
                 "Shuttle SocksProxy Boss[" + configuration.getHost() + ":" + configuration.getPort() + "]"));
         this.workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() + 1, new NamedThreadFactory(
                 "Shuttle SocksProxy Worker[" + configuration.getHost() + ":" + configuration.getPort() + "]"));
-        serverBootstrap.group(bossGroup, workerGroup)
+        this.serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, 256)
-                .option(ChannelOption.SO_REUSEADDR, true)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                //.childOption(ChannelOption.SO_RCVBUF, 1024 * 1024)
                 .childHandler(new ProxyChannelInitializer(configuration));
+        setupChannelOption(configuration);
+        setupChannelAttr(configuration);
+    }
+
+    private void setupChannelOption(Configuration configuration) {
+        this.serverBootstrap
+                .option(ChannelOption.SO_BACKLOG, configuration.getBacklog())
+                .option(ChannelOption.SO_REUSEADDR, true)
+                //.childOption(ChannelOption.SO_RCVBUF, 1024 * 1024)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
+                .childOption(ChannelOption.TCP_NODELAY, true);
+    }
+
+    public void setupChannelAttr(Configuration configuration) {
+        this.serverBootstrap.childAttr(AttributeKeys.CONFIGURATION_ATTR_KEY, configuration);
+        if (null != configuration.getDns() && configuration.getDns().length() > 0) {
+            DnsAddressResolverGroup addressResolverGroup =
+                    new DnsAddressResolverGroup(NioDatagramChannel.class, new SingletonDnsServerAddressStreamProvider(
+                            new InetSocketAddress(configuration.getDns(), Configuration.DNS_PORT)));
+            this.serverBootstrap.childAttr(AttributeKeys.ADDRESS_RESOLVER_GROUP_ATTR_KEY, addressResolverGroup);
+        }
     }
 
     public void start() throws InterruptedException {

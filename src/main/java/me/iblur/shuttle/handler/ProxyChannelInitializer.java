@@ -5,7 +5,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.AttributeKey;
 import me.iblur.shuttle.conf.Configuration;
 
 /**
@@ -26,6 +25,5 @@ public class ProxyChannelInitializer extends ChannelInitializer<SocketChannel> {
             pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
         }
         pipeline.addLast(new ProxySelectorHandler());
-        ch.attr(AttributeKey.valueOf("configuration")).set(configuration);
     }
 }
