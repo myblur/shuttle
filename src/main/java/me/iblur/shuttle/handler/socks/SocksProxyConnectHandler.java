@@ -13,7 +13,9 @@ import io.netty.handler.codec.socksx.v5.Socks5CommandStatus;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
-import me.iblur.shuttle.handler.ProxyConnectHandler;
+import me.iblur.shuttle.conf.AttributeKeys;
+import me.iblur.shuttle.conf.Configuration;
+import me.iblur.shuttle.handler.AbstractProxyConnectHandler;
 import me.iblur.shuttle.handler.ProxyRelayHandler;
 
 import java.net.Inet4Address;
@@ -24,7 +26,7 @@ import java.net.InetSocketAddress;
  * @since 2021-04-15 16:54
  */
 @ChannelHandler.Sharable
-public class SocksProxyConnectHandler extends ProxyConnectHandler<SocksMessage> {
+public class SocksProxyConnectHandler extends AbstractProxyConnectHandler<SocksMessage> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, SocksMessage msg) throws Exception {
@@ -41,7 +43,8 @@ public class SocksProxyConnectHandler extends ProxyConnectHandler<SocksMessage> 
                         Socks5AddressType.IPv6;
                 String bndAddr = remoteAddress.getHostAddress();
                 ctx.writeAndFlush(
-                        new DefaultSocks5CommandResponse(Socks5CommandStatus.SUCCESS, bndAddrType, bndAddr, port))
+                                new DefaultSocks5CommandResponse(Socks5CommandStatus.SUCCESS, bndAddrType, bndAddr,
+                                        port))
                         .addListener((ChannelFutureListener) f2 -> {
                             if (f2.isSuccess()) {
                                 outboundChannel.pipeline().addLast(new ProxyRelayHandler(inboundChannel));
@@ -64,7 +67,22 @@ public class SocksProxyConnectHandler extends ProxyConnectHandler<SocksMessage> 
                 inboundChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
         };
-        connectRemoteAddress(inboundChannel, host, port, connectListener, promise);
+        final Configuration configuration = inboundChannel.attr(AttributeKeys.CONFIGURATION_ATTR_KEY).get();
+        if (socks5CommandRequest.dstAddrType() == Socks5AddressType.DOMAIN && null != configuration.getDot()) {
+            final Promise<String> dnsQueryPromise = ctx.executor().newPromise();
+            dnsQueryPromise.addListener((GenericFutureListener<Future<String>>) future -> {
+                if (future.isSuccess()) {
+                    connectRemoteAddress(inboundChannel, future.getNow(), port, connectListener, promise);
+                } else {
+                    inboundChannel.writeAndFlush(new DefaultSocks5CommandResponse(
+                            Socks5CommandStatus.FAILURE, socks5CommandRequest.dstAddrType()));
+                    inboundChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                }
+            });
+            resolveDomain(inboundChannel, dnsQueryPromise, socks5CommandRequest.dstAddr());
+        } else {
+            connectRemoteAddress(inboundChannel, host, port, connectListener, promise);
+        }
     }
 
     @Override

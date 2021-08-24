@@ -6,11 +6,13 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
-import me.iblur.shuttle.handler.ProxyConnectHandler;
+import me.iblur.shuttle.conf.AttributeKeys;
+import me.iblur.shuttle.conf.Configuration;
+import me.iblur.shuttle.handler.AbstractProxyConnectHandler;
 import me.iblur.shuttle.handler.ProxyRelayHandler;
 
 @ChannelHandler.Sharable
-public class HttpProxyConnectHandler extends ProxyConnectHandler<HttpObject> {
+public class HttpProxyConnectHandler extends AbstractProxyConnectHandler<HttpObject> {
 
     private static final DefaultHttpResponse TUNNELING_OK = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
             HttpResponseStatus.valueOf(HttpResponseStatus.OK.code(), "Connection Established"));
@@ -63,7 +65,7 @@ public class HttpProxyConnectHandler extends ProxyConnectHandler<HttpObject> {
                                 inboundChannel.pipeline().remove(HttpServerCodec.class);
                             } else {
                                 inboundChannel.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                                        HttpResponseStatus.SERVICE_UNAVAILABLE))
+                                                HttpResponseStatus.SERVICE_UNAVAILABLE))
                                         .addListener(ChannelFutureListener.CLOSE);
                             }
                         });
@@ -76,13 +78,28 @@ public class HttpProxyConnectHandler extends ProxyConnectHandler<HttpObject> {
             ChannelFutureListener connectListener = future -> {
                 if (!future.isSuccess()) {
                     inboundChannel.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                            HttpResponseStatus.SERVICE_UNAVAILABLE))
+                                    HttpResponseStatus.SERVICE_UNAVAILABLE))
                             .addListener(ChannelFutureListener.CLOSE);
                 }
             };
             String remoteHost = hostAndPort[0];
             int remotePort = Integer.parseInt(hostAndPort[1]);
-            connectRemoteAddress(inboundChannel, remoteHost, remotePort, connectListener, promise);
+            Configuration configuration = inboundChannel.attr(AttributeKeys.CONFIGURATION_ATTR_KEY).get();
+            if (null != configuration.getDot()) {
+                final Promise<String> dnsQueryPromise = ctx.executor().newPromise();
+                dnsQueryPromise.addListener((GenericFutureListener<Future<String>>) future -> {
+                    if (future.isSuccess()) {
+                        connectRemoteAddress(inboundChannel, future.getNow(), remotePort, connectListener, promise);
+                    } else {
+                        inboundChannel.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                                        HttpResponseStatus.SERVICE_UNAVAILABLE))
+                                .addListener(ChannelFutureListener.CLOSE);
+                    }
+                });
+                resolveDomain(inboundChannel, dnsQueryPromise, remoteHost);
+            } else {
+                connectRemoteAddress(inboundChannel, remoteHost, remotePort, connectListener, promise);
+            }
         }
     }
 }

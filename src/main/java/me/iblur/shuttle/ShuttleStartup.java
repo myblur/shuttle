@@ -4,12 +4,14 @@ import me.iblur.shuttle.conf.Configuration;
 import me.iblur.shuttle.server.ShuttleProxyServer;
 import picocli.CommandLine;
 
+import javax.net.ssl.SSLException;
+
 /**
  * @since 2021-04-15 14:48
  */
 public class ShuttleStartup {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, SSLException {
         Configuration configuration = new Configuration();
         try {
             CommandLine.populateCommand(configuration, args);

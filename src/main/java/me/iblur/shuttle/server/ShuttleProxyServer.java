@@ -8,6 +8,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.resolver.dns.DnsAddressResolverGroup;
 import io.netty.resolver.dns.SingletonDnsServerAddressStreamProvider;
 import me.iblur.shuttle.conf.AttributeKeys;
@@ -17,6 +20,7 @@ import me.iblur.shuttle.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
 
 /**
@@ -33,7 +37,7 @@ public class ShuttleProxyServer {
 
     private final Configuration configuration;
 
-    public ShuttleProxyServer(Configuration configuration) {
+    public ShuttleProxyServer(Configuration configuration) throws SSLException {
         this.serverBootstrap = new ServerBootstrap();
         this.configuration = configuration;
         this.bossGroup = new NioEventLoopGroup(1, new NamedThreadFactory(
@@ -56,8 +60,11 @@ public class ShuttleProxyServer {
                 .childOption(ChannelOption.TCP_NODELAY, true);
     }
 
-    public void setupChannelAttr(Configuration configuration) {
+    public void setupChannelAttr(Configuration configuration) throws SSLException {
         this.serverBootstrap.childAttr(AttributeKeys.CONFIGURATION_ATTR_KEY, configuration);
+        final SslContext sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.OPENSSL)
+                .protocols("TLSv1.2", "TLSv1.3").build();
+        this.serverBootstrap.childAttr(AttributeKeys.SSL_CONTEXT_ATTR_KEY, sslContext);
         if (null != configuration.getDns() && configuration.getDns().length() > 0) {
             DnsAddressResolverGroup addressResolverGroup =
                     new DnsAddressResolverGroup(NioDatagramChannel.class, new SingletonDnsServerAddressStreamProvider(

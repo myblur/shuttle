@@ -16,6 +16,9 @@ public class Configuration {
     private static final int DEFAULT_BACK_LOG = 256;
 
     public static final int DNS_PORT = 53;
+
+    public static final int DEFAULT_DNS_OVER_TLS_PORT = 853;
+
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000;
 
     @CommandLine.Option(names = {"-h", "--host"}, description = "Proxy server bind host", defaultValue = DEFAULT_HOST)
@@ -35,6 +38,9 @@ public class Configuration {
     @CommandLine.Option(names = {"-d", "--dns"}, description = "The DNS used by the proxy service to connect to the " +
             "remote server client")
     private String dns;
+
+    @CommandLine.Option(names = {"-dot"}, description = "The DNS over TLS server address")
+    private String dot;
 
     @CommandLine.Option(names = {"--debug"}, description = "Display transmit information")
     private boolean debug;
@@ -80,6 +86,14 @@ public class Configuration {
 
     public void setDns(final String dns) {
         this.dns = dns;
+    }
+
+    public String getDot() {
+        return dot;
+    }
+
+    public void setDot(final String dot) {
+        this.dot = dot;
     }
 
     public boolean isDebug() {
