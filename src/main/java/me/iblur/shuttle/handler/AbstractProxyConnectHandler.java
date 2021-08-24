@@ -28,7 +28,7 @@ public abstract class AbstractProxyConnectHandler<I> extends SimpleChannelInboun
                                 Configuration.DEFAULT_DNS_OVER_TLS_PORT));
                         pipeline.addLast(new TcpDnsQueryEncoder());
                         pipeline.addLast(new TcpDnsResponseDecoder());
-                        pipeline.addLast(new DotResponseHandler(promise));
+                        pipeline.addLast(new DoTResponseHandler(promise));
                     }
                 });
         bootstrap.connect(configuration.getDot(), Configuration.DEFAULT_DNS_OVER_TLS_PORT).addListener(

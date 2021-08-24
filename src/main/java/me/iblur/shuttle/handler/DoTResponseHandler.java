@@ -14,13 +14,13 @@ import java.net.UnknownHostException;
 /**
  * @author iblur 2021-08-24
  */
-public class DotResponseHandler extends SimpleChannelInboundHandler<DefaultDnsResponse> {
+public class DoTResponseHandler extends SimpleChannelInboundHandler<DefaultDnsResponse> {
 
-    private final Logger log = LoggerFactory.getLogger(DotResponseHandler.class);
+    private final Logger log = LoggerFactory.getLogger(DoTResponseHandler.class);
 
     private final Promise<String> promise;
 
-    public DotResponseHandler(Promise<String> promise) {
+    public DoTResponseHandler(Promise<String> promise) {
         this.promise = promise;
     }
 
